@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#22070f">
+<title>Pedido de namoro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@1,500;1,700&family=DM+Sans:wght@500;700&display=swap">
+<style>
+  /* Layout: uma tela só. A pergunta fica no centro, os botões logo abaixo,
+     corações sobem ao fundo e explodem na frente quando a resposta é SIM. */
+  :root {
+    --wine-950: #22070f;
+    --wine-800: #4a0f27;
+    --wine-glow: #6e1b3d;
+    --rose-500: #e5396a;
+    --rose-glow: rgba(229, 57, 106, 0.55);
+    --blush-200: #ffc9d6;
+    --blush-line: rgba(255, 201, 214, 0.55);
+    --ink: #fff2f5;
+    --font-display: "Bodoni Moda", Didot, Georgia, serif;
+    --font-ui: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: dark;
+  }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    padding-block: 24px;
+    padding-inline: 16px;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background-color: var(--wine-950);
+    background-image:
+      radial-gradient(110% 80% at 50% 0%, var(--wine-glow) 0%, var(--wine-800) 38%, var(--wine-950) 100%);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 16px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 52rem;
+    min-width: 0;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+  }
+
+  .tela {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .eyebrow {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--blush-200);
+    opacity: 0.85;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(2.4rem, 9vw, 5.2rem);
+    line-height: 1.05;
+    text-wrap: balance;
+    color: var(--ink);
+    text-shadow: 0 0 40px rgba(255, 120, 160, 0.35);
+  }
+
+  h1:focus { outline: none; }
+
+  .resposta {
+    margin: 0;
+    font-size: 1.2rem;
+    line-height: 1.5;
+    color: var(--blush-200);
+    text-wrap: balance;
+  }
+
+  .botoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .slot { display: inline-flex; }
+
+  .btn {
+    min-height: 52px;
+    padding: 0 2.4rem;
+    font-family: var(--font-ui);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+  }
+
+  .btn:focus-visible {
+    outline: 3px solid var(--blush-200);
+    outline-offset: 4px;
+  }
+
+  .btn-sim {
+    background: var(--rose-500);
+    color: #ffffff;
+    box-shadow: 0 0 28px var(--rose-glow);
+    animation: pulsar 2.4s ease-in-out infinite;
+  }
+
+  .btn-sim:hover { transform: scale(1.06); }
+  .btn-sim:active { transform: scale(0.97); }
+
+  .btn-nao {
+    background: transparent;
+    color: var(--blush-200);
+    border-color: var(--blush-line);
+  }
+
+  .btn-nao:hover { background: rgba(255, 201, 214, 0.1); }
+
+  /* Depois do primeiro clique o NÃO sai do fluxo e passa a andar pela tela. */
+  .btn-nao.fugindo {
+    position: fixed;
+    z-index: 20;
+    transition: left 0.38s cubic-bezier(0.3, 1.5, 0.5, 1), top 0.38s cubic-bezier(0.3, 1.5, 0.5, 1), background-color 0.15s ease;
+  }
+
+  .link-discreto {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    color: var(--blush-200);
+    opacity: 0.75;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
+  }
+
+  .link-discreto:hover { opacity: 1; }
+  .link-discreto:focus-visible { outline: 3px solid var(--blush-200); outline-offset: 3px; opacity: 1; }
+
+  #final { animation: entrar 0.6s ease both; }
+
+  #coracoes {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 15;
+  }
+
+  @keyframes pulsar {
+    0%, 100% { box-shadow: 0 0 22px var(--rose-glow); }
+    50% { box-shadow: 0 0 42px var(--rose-glow); }
+  }
+
+  @keyframes entrar {
+    from { opacity: 0; transform: translateY(14px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-sim { animation: none; }
+    #final { animation: none; }
+    .btn-nao.fugindo { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="coracoes" aria-hidden="true"></canvas>
+
+<main>
+  <section id="pergunta" class="tela">
+    <p class="eyebrow">Tenho uma pergunta pra você, sua esquizofrênica</p>
+    <h1 id="titulo">Quer namorar comigo?</h1>
+    <div class="botoes">
+      <button id="sim" class="btn btn-sim" type="button">SIM</button>
+      <span id="slot" class="slot">
+        <button id="nao" class="btn btn-nao" type="button">NÃO</button>
+      </span>
+    </div>
+  </section>
+
+  <section id="final" class="tela" hidden>
+    <h1 id="titulo-final" tabindex="-1">Nem to acreditando que você disse sim!</h1>
+    <p class="resposta">Eu amo você, e vou te amar pelo resto da minha vida.</p>
+    <button id="de-novo" class="link-discreto" type="button">Ver de novo</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const reduzir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const secaoPergunta = document.getElementById("pergunta");
+  const secaoFinal = document.getElementById("final");
+  const titulo = document.getElementById("titulo");
+  const tituloFinal = document.getElementById("titulo-final");
+  const sim = document.getElementById("sim");
+  const nao = document.getElementById("nao");
+  const slot = document.getElementById("slot");
+  const deNovo = document.getElementById("de-novo");
+
+  /* ---------- Botão NÃO fugindo ---------- */
+
+  const MARGEM = 12;
+  let fugindo = false;
+
+  function sobrepoe(a, b, folga) {
+    return !(
+      a.right + folga < b.left ||
+      a.left - folga > b.right ||
+      a.bottom + folga < b.top ||
+      a.top - folga > b.bottom
+    );
+  }
+
+  function sortear(w, h, evitar, distanciaMinima, atual) {
+    const maxX = Math.max(MARGEM, window.innerWidth - w - MARGEM);
+    const maxY = Math.max(MARGEM, window.innerHeight - h - MARGEM);
+    for (let i = 0; i < 50; i++) {
+      const x = MARGEM + Math.random() * (maxX - MARGEM);
+      const y = MARGEM + Math.random() * (maxY - MARGEM);
+      const caixa = { left: x, top: y, right: x + w, bottom: y + h };
+      const livre = !evitar.some((r) => sobrepoe(caixa, r, 16));
+      const longe = Math.hypot(x - atual.left, y - atual.top) >= distanciaMinima;
+      if (livre && longe) return { x, y };
+    }
+    return null;
+  }
+
+  function fugir() {
+    const w = nao.offsetWidth;
+    const h = nao.offsetHeight;
+
+    if (!fugindo) {
+      // Congela o espaço do botão no lugar original e solta ele da linha.
+      const r = nao.getBoundingClientRect();
+      slot.style.width = r.width + "px";
+      slot.style.height = r.height + "px";
+      nao.style.left = r.left + "px";
+      nao.style.top = r.top + "px";
+      nao.classList.add("fugindo");
+      fugindo = true;
+      void nao.offsetWidth;
+    }
+
+    const atual = nao.getBoundingClientRect();
+    const rSim = sim.getBoundingClientRect();
+    const rTitulo = titulo.getBoundingClientRect();
+    const longe = Math.min(window.innerWidth, window.innerHeight) * 0.25;
+
+    const lugar =
+      sortear(w, h, [rSim, rTitulo], longe, atual) ||
+      sortear(w, h, [rSim], longe, atual) ||
+      sortear(w, h, [rSim], 0, atual) ||
+      sortear(w, h, [], 0, atual) ||
+      { x: MARGEM, y: MARGEM };
+
+    nao.style.left = lugar.x + "px";
+    nao.style.top = lugar.y + "px";
+  }
+
+  nao.addEventListener("click", fugir);
+
+  window.addEventListener("resize", () => {
+    if (!fugindo) return;
+    const r = nao.getBoundingClientRect();
+    const maxX = Math.max(MARGEM, window.innerWidth - r.width - MARGEM);
+    const maxY = Math.max(MARGEM, window.innerHeight - r.height - MARGEM);
+    nao.style.left = Math.min(Math.max(MARGEM, r.left), maxX) + "px";
+    nao.style.top = Math.min(Math.max(MARGEM, r.top), maxY) + "px";
+  });
+
+  function resetarNao() {
+    fugindo = false;
+    nao.classList.remove("fugindo");
+    nao.style.left = "";
+    nao.style.top = "";
+    slot.style.width = "";
+    slot.style.height = "";
+  }
+
+  /* ---------- Corações (canvas) ---------- */
+
+  const canvas = document.getElementById("coracoes");
+  const ctx = canvas.getContext("2d");
+  let W = 0;
+  let H = 0;
+
+  function ajustarCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  ajustarCanvas();
+  window.addEventListener("resize", ajustarCanvas);
+
+  // Coração desenhado em coordenadas de 1 x ~0,85, para escalar com ctx.scale.
+  const CORACAO = new Path2D();
+  CORACAO.moveTo(0, 0.4);
+  CORACAO.bezierCurveTo(-0.55, 0.0, -0.5, -0.45, -0.25, -0.45);
+  CORACAO.bezierCurveTo(-0.1, -0.45, 0, -0.35, 0, -0.25);
+  CORACAO.bezierCurveTo(0, -0.35, 0.1, -0.45, 0.25, -0.45);
+  CORACAO.bezierCurveTo(0.5, -0.45, 0.55, 0.0, 0, 0.4);
+  CORACAO.closePath();
+
+  const CORES = ["#ff4d79", "#ff7a9c", "#ffa6bc", "#ffc9d6", "#e5396a", "#ff2e63", "#fff0f3"];
+  const LIMITE = 700;
+  const particulas = [];
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const cor = () => CORES[Math.floor(Math.random() * CORES.length)];
+
+  function explodir(cx, cy, quantidade) {
+    for (let i = 0; i < quantidade; i++) {
+      const angulo = Math.random() * Math.PI * 2;
+      const forca = rand(4, 15);
+      particulas.push({
+        x: cx, y: cy,
+        vx: Math.cos(angulo) * forca,
+        vy: Math.sin(angulo) * forca - 2,
+        g: 0.2, arrasto: 0.985,
+        rot: rand(-0.6, 0.6), vr: rand(-0.08, 0.08),
+        tam: rand(14, 40),
+        cor: cor(),
+        vida: rand(110, 200), fade: 40, alpha: 1,
+        balanco: 0,
+      });
+    }
+    if (particulas.length > LIMITE) particulas.splice(0, particulas.length - LIMITE);
+  }
+
+  function subir() {
+    particulas.push({
+      x: rand(0, W), y: H + 30,
+      vx: 0, vy: -rand(0.5, 1.2),
+      g: 0, arrasto: 1,
+      rot: rand(-0.3, 0.3), vr: rand(-0.01, 0.01),
+      tam: rand(12, 30),
+      cor: cor(),
+      vida: H / 0.8 + 120, fade: 80, alpha: rand(0.18, 0.32),
+      balanco: rand(0, 6.28),
+    });
+  }
+
+  function chover() {
+    particulas.push({
+      x: rand(0, W), y: -30,
+      vx: rand(-0.4, 0.4), vy: rand(1.5, 3.4),
+      g: 0, arrasto: 1,
+      rot: rand(-0.4, 0.4), vr: rand(-0.03, 0.03),
+      tam: rand(14, 34),
+      cor: cor(),
+      vida: H / 1.5 + 160, fade: 60, alpha: rand(0.7, 1),
+      balanco: rand(0, 6.28),
+    });
+  }
+
+  let modo = "pergunta";
+  let chuvaIntensa = 0;
+  let espera = 0;
+  let ultimo = performance.now();
+
+  function quadro(agora) {
+    const dt = Math.min(50, agora - ultimo);
+    ultimo = agora;
+    const k = dt / 16.67;
+
+    if (!reduzir) {
+      espera -= dt;
+      if (espera <= 0) {
+        if (modo === "pergunta") {
+          subir();
+          espera = 650;
+        } else {
+          chover();
+          if (chuvaIntensa > 0) {
+            chover();
+            chover();
+            espera = 45;
+          } else {
+            espera = 220;
+          }
+        }
+      }
+      if (chuvaIntensa > 0) chuvaIntensa -= dt;
+    }
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (let i = particulas.length - 1; i >= 0; i--) {
+      const p = particulas[i];
+      const f = Math.pow(p.arrasto, k);
+      p.vx *= f;
+      p.vy = p.vy * f + p.g * k;
+      p.x += p.vx * k + (p.balanco ? Math.sin(p.balanco) * 0.4 * k : 0);
+      p.y += p.vy * k;
+      p.rot += p.vr * k;
+      if (p.balanco) p.balanco += 0.03 * k;
+      p.vida -= k;
+
+      const saiu = p.vida <= 0 || p.y < -80 || p.y > H + 80 || p.x < -80 || p.x > W + 80;
+      if (saiu) {
+        particulas.splice(i, 1);
+        continue;
+      }
+
+      const opacidade = p.alpha * Math.min(1, p.vida / p.fade);
+      ctx.save();
+      ctx.globalAlpha = opacidade;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.scale(p.tam, p.tam);
+      ctx.fillStyle = p.cor;
+      ctx.fill(CORACAO);
+      ctx.restore();
+    }
+
+    requestAnimationFrame(quadro);
+  }
+  requestAnimationFrame(quadro);
+
+  /* ---------- Resposta SIM ---------- */
+
+  sim.addEventListener("click", () => {
+    const r = sim.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+
+    explodir(cx, cy, reduzir ? 40 : 160);
+    if (!reduzir) {
+      setTimeout(() => explodir(W / 2, H * 0.4, 120), 280);
+      chuvaIntensa = 6000;
+    }
+    modo = "sim";
+
+    setTimeout(() => {
+      secaoPergunta.hidden = true;
+      secaoFinal.hidden = false;
+      tituloFinal.focus({ preventScroll: true });
+    }, 120);
+  });
+
+  deNovo.addEventListener("click", () => {
+    secaoFinal.hidden = true;
+    secaoPergunta.hidden = false;
+    resetarNao();
+    modo = "pergunta";
+    chuvaIntensa = 0;
+    sim.focus({ preventScroll: true });
+  });
+})();
+</script>
+</body>
+</html>
